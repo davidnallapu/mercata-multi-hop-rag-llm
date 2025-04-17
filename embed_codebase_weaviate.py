@@ -46,8 +46,8 @@ KEY_FILES = {
 SOURCE_DIRS = [
     # ("strato-platform/eth-bridge", "bridge related code"),
     # ("strato-platform/strato/api", "api related code"),
-    # ("strato-platform/strato/indexer", "indexer related code"),
-    # ("strato-platform/strato/VM", "VM code"),
+    ("strato-platform/strato/indexer", "indexer related code"),
+    ("strato-platform/strato/VM", "VM code"),
     # ("strato-platform/marketplace", "marketplace related code"),
     # ("docs-website", "documentation website"),
     # ("strato-getting-started", "getting started guide"),
@@ -56,14 +56,14 @@ SOURCE_DIRS = [
     # ("strato-mercata-docs", "mercata documentation"),
     ("strato-platform/marketplace/backend/dapp/mercata-base-contracts", "contracts UTXO old"),
     ("strato-platform/mercata", "contracts ERC20"),
-    # ("other", "Contains important .docx files")
+    ("other", "Contains important .docx files")
 ]
 
 # List of important onboarding documents
 DOCS = [
-    # ("Mercata.docx", "general"),
-    # ("Mercata Integration ERC20.docx", "erc20"),
-    # ("Mercata Integration UTXO.docx", "utxo")
+    ("Mercata.docx", "general"),
+    ("Mercata Integration ERC20.docx", "erc20"),
+    ("Mercata Integration UTXO.docx", "utxo")
 ]
 
 # Add more extensions to capture all relevant files
@@ -906,7 +906,8 @@ def init_schema():
                 weaviate.classes.config.Property(name="file", data_type=weaviate.classes.config.DataType.TEXT),
                 weaviate.classes.config.Property(name="category", data_type=weaviate.classes.config.DataType.TEXT),
                 weaviate.classes.config.Property(name="module", data_type=weaviate.classes.config.DataType.TEXT),
-                weaviate.classes.config.Property(name="model", data_type=weaviate.classes.config.DataType.TEXT)
+                weaviate.classes.config.Property(name="model", data_type=weaviate.classes.config.DataType.TEXT),
+                weaviate.classes.config.Property(name="language", data_type=weaviate.classes.config.DataType.TEXT)
             ]
         )
         logger.info("✅ Created 'CodeChunk' collection")
@@ -1120,10 +1121,33 @@ def scan_and_upload():
             total_files += 1
             chunk_count = 0
             
+            # Get language from file extension
+            language = path.suffix.lstrip('.').lower()
+            
+            # Handle specific mappings for common extensions
+            language_mapping = {
+                'md': 'markdown',
+                'hs': 'haskell',
+                'sol': 'solidity',
+                'js': 'javascript',
+                'jsx': 'javascript',
+                'ts': 'typescript',
+                'tsx': 'typescript',
+                'py': 'python',
+                'yml': 'yaml',
+                'yaml': 'yaml',
+                'json': 'json',
+                'docx': 'document'
+            }
+            
+            # Use mapping if available, otherwise use extension
+            language = language_mapping.get(language, language)
+            
             # Store basic metadata
             file_metadata[str(path)] = {
                 "category": meta.get("category", "unknown"),
-                "module": meta.get("module", "")
+                "module": meta.get("module", ""),
+                "language": language
             }
             
             # Process chunks one by one with better error handling
@@ -1149,7 +1173,8 @@ def scan_and_upload():
                         "file": str(path),
                         "category": meta.get("category", "unknown"),
                         "module": meta.get("module", ""),
-                        "model": meta.get("model", "")
+                        "model": meta.get("model", ""),
+                        "language": language
                     }
                     
                     # Add to batch without the nested "properties" key
@@ -1613,21 +1638,19 @@ def create_prioritized_search(query_text):
     # Create category filters for each tier
     filters = {
         "docs_md": [
-            Filter.by_property("file").contains("docs-website") & 
-            Filter.by_property("file").contains(".md")
+            Filter.by_property("language").equal("markdown")
         ],
         "docs_docx": [
-            Filter.by_property("file").contains("other") & 
-            Filter.by_property("file").contains(".docx")
+            Filter.by_property("language").equal("document")
         ],
         "marketplace": [
             Filter.by_property("file").contains("marketplace")
         ],
         "haskell": [
-            Filter.by_property("file").contains(".hs")
+            Filter.by_property("language").equal("haskell")
         ],
         "contracts": [
-            Filter.by_property("file").contains(".sol") | 
+            Filter.by_property("language").equal("solidity") | 
             (Filter.by_property("category").equal("contract"))
         ]
     }

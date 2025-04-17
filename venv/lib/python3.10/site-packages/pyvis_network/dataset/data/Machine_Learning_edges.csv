@@ -1,0 +1,8 @@
+source_node_id,to_node_id
+Supervised\nlearning,Linear\nregression
+Supervised\nlearning,Logistic\nregression
+Unsupervised\nlearning,Cluster\nanalysis
+Supervised\nlearning,Deep\nlearning
+Unsupervised\nlearning,Deep\nlearning
+Supervised\nlearning,Natural\nlanguage\nprocessing
+Unsupervised\nlearning,Natural\nlanguage\nprocessing

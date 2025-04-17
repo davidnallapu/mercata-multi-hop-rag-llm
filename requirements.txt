@@ -1,0 +1,7 @@
+openai
+python-dotenv
+weaviate-client
+tree-sitter
+networkx
+python-docx
+nltk 

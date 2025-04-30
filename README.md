@@ -185,7 +185,7 @@ SOFTWARE.
 
 ## 👨‍💻 Maintainer
 
-David Samuel Nallapu – [LinkedIn](https://linkedin.com/in/david-nallapu)
+David Samuel Nallapu – [LinkedIn](https://linkedin.com/in/davidnallapu)
 
 ---
 

@@ -1,8 +1,21 @@
-# 🔍 Code Search and Analysis System
+# 🔍 Code Search and Analysis System  using Mutli-hop Retrieval Augmented Generation (RAG) for Strato Mercata
 
 A semantic code search and analysis tool that indexes your codebase using embeddings and stores it in **Weaviate**, enabling **LLM-powered queries** over both code and documentation.
 
+What is RAG?
+
+Retrieval Augmented Generation (RAG) is a technique that uses a large language model (LLM) to generate text based on a given prompt. It is a type of generative AI that uses a large language model to generate text based on a given prompt.   
+
+What is Multi-hop RAG?
+
+Multi-hop RAG is a technique that uses a large language model (LLM) to generate text based on a given prompt. THe LLM interacts with a vector DB askign for increasingly more context as needed.
+
+How does it work?
+
+The LLM is given a prompt and a vector DB. It then uses the prompt to search the vector DB for relevant context. It then uses the context to generate a response.
 ---
+
+Note: Currently ASTs for edges are not done. This would make queries even more accurate.
 
 ## 🧰 Tech Stack
 
@@ -55,8 +68,10 @@ docker-compose up -d
 
 ### 3. Run the code indexer
 
+Make sure you have the correct API key in your `.env` file.
+
 ```bash
-python index_codebase.py
+python embed_codebase_weaviate.py
 ```
 
 This will:
@@ -72,7 +87,7 @@ This will:
 ## 🌐 Starting the Search Backend (API)
 
 ```bash
-python query_backend.py
+python query_codebase_weaviate2.py
 ```
 
 > Exposes an API at `http://localhost:5000`.
@@ -150,6 +165,12 @@ MIT License or Custom License — insert here.
 
 ## 👨‍💻 Maintainer
 
-David Nallapu – [LinkedIn](https://linkedin.com/in/david-nallapu)
+David Samuel Nallapu – [LinkedIn](https://linkedin.com/in/david-nallapu)
 
---
+---
+
+## 📚 References
+
+- [Weaviate](https://weaviate.io/)
+- [OpenAI](https://openai.com/)
+- [Python](https://www.python.org/)

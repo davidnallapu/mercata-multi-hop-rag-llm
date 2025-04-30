@@ -15,7 +15,7 @@ print("Key loaded:", api_key[:15], "...")      # should show sk-proj
 # Inspect env
 print("OPENAI_ORGANIZATION =", os.getenv("OPENAI_ORGANIZATION"))
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key=api_key)
 print("client.organization =", client.organization)   # must be None
 
 # Make a simple query to the OpenAI API

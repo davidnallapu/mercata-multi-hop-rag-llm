@@ -1,0 +1,2 @@
+cli
+weaviate_cli

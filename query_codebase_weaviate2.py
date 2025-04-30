@@ -11,6 +11,7 @@ import time
 import flask
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import random
 
 # Setup logging
 logging.basicConfig(
@@ -40,13 +41,12 @@ except Exception as e:
     logger.info("Try running: pip install weaviate-client")
     exit(1)
 
-def query_openai_api_direct(prompt, model="gpt-4.1"):
+def query_openai_api_direct(prompt, model="gpt-4o"):
     """Query OpenAI API directly using HTTP requests instead of the SDK."""
     logger.info(f"Querying OpenAI API directly with model: {model}")
     
     try:
         api_key = os.getenv("OPENAI_API_KEY")
-        print("DAVID api_key", api_key)
         if not api_key:
             return "Error: OPENAI_API_KEY not found in environment variables."
         
@@ -65,41 +65,101 @@ def query_openai_api_direct(prompt, model="gpt-4.1"):
             "temperature": 0.3
         }
         
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()  # Raise exception for non-200 status codes
+        # Implement exponential backoff for rate limits
+        max_retries = 5
+        base_delay = 1
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(url, headers=headers, json=data)
+                
+                # Check for rate limit error
+                if response.status_code == 429:
+                    # Parse retry after header if available
+                    retry_after = response.headers.get('Retry-After', None)
+                    if retry_after and retry_after.isdigit():
+                        delay = int(retry_after)
+                    else:
+                        # Calculate exponential backoff with jitter
+                        delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    
+                    logger.warning(f"Rate limit hit. Retrying in {delay:.2f} seconds (attempt {attempt+1}/{max_retries})")
+                    time.sleep(delay)
+                    
+                    # If this is the last attempt, try a fallback model
+                    if attempt == max_retries - 1 and model != "gpt-3.5-turbo":
+                        logger.warning(f"Falling back to gpt-3.5-turbo after multiple rate limit errors")
+                        return query_openai_api_direct(prompt, model="gpt-3.5-turbo")
+                    
+                    continue
+                
+                # For all other errors, raise exception
+                response.raise_for_status()
+                
+                result = response.json()
+                return result["choices"][0]["message"]["content"]
+                
+            except requests.exceptions.RequestException as e:
+                # If this wasn't a rate limit error or we're out of retries, raise it
+                if not (hasattr(e.response, 'status_code') and e.response.status_code == 429) or attempt == max_retries - 1:
+                    raise
+                
+                # Otherwise try again with the delay calculated above
         
-        result = response.json()
-        return result["choices"][0]["message"]["content"]
+        # If we've exhausted retries
+        return f"API rate limit exceeded after {max_retries} retries. Please try again later."
         
     except Exception as e:
         logger.error(f"Failed to call OpenAI API directly: {e}")
         return f"API call failed: {str(e)}"
 
-def query_openai_api(prompt, model="gpt-4.1"):
+def query_openai_api(prompt, model="gpt-4o"):
     """Query OpenAI API using their SDK."""
     logger.info(f"Querying OpenAI API with model: {model}")
     
     try:
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key_1 = os.getenv("OPENAI_API_KEY")
         if not api_key:
             return "Error: OPENAI_API_KEY not found in environment variables."
         
         # Create client with API key
-        client = OpenAI(api_key="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")
+        client = OpenAI(api_key=api_key_1)
         
-        # Remove debug prints
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that provides accurate information about code."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=4000,
-            temperature=0.3
-        )
+        # Implement exponential backoff for rate limits
+        max_retries = 5
+        base_delay = 1
+        for attempt in range(max_retries):
+            try:
+                # Remove debug prints
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant that provides accurate information about code."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=4000,
+                    temperature=0.3
+                )
+                
+                # Return just the content
+                return response.choices[0].message.content
+            except Exception as e:
+                # Check if this is a rate limit error
+                if hasattr(e, 'status_code') and e.status_code == 429:
+                    # Calculate exponential backoff with jitter
+                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    logger.warning(f"Rate limit hit. Retrying in {delay:.2f} seconds (attempt {attempt+1}/{max_retries})")
+                    time.sleep(delay)
+                    
+                    # If this is the last attempt, try a fallback model
+                    if attempt == max_retries - 1 and model != "gpt-3.5-turbo":
+                        logger.warning(f"Falling back to gpt-3.5-turbo after multiple rate limit errors")
+                        return query_openai_api(prompt, model="gpt-3.5-turbo")
+                else:
+                    # For non-rate-limit errors, don't retry
+                    raise
         
-        # Return just the content
-        return response.choices[0].message.content
+        # If we've exhausted retries
+        return f"API rate limit exceeded after {max_retries} retries. Please try again later."
         
     except Exception as e:
         logger.error(f"Failed to call OpenAI API: {e}")
@@ -153,7 +213,7 @@ def query_codebase_structure(query, limit=10):
         logger.warning(f"Error querying codebase structure: {e}")
         return [], []
 
-def query_with_context(user_query, num_chunks=5, max_tokens=8192, use_direct_api=False, use_openai=True, min_iterations=2, max_iterations=10, verbose=True, openai_model="gpt-4.1"):
+def query_with_context(user_query, num_chunks=5, max_tokens=8192, use_direct_api=False, use_openai=True, min_iterations=2, max_iterations=10, verbose=True, openai_model="gpt-4o"):
     """Query language models with context from the Weaviate database with iterative refinement."""
     logger.info(f"Querying with: '{user_query}'")
     
@@ -478,15 +538,15 @@ def query_with_context(user_query, num_chunks=5, max_tokens=8192, use_direct_api
                 # Fallback to using the OpenAI SDK
                 try:
                     current_prompt = initial_prompt if iterations == 1 else f"{initial_prompt}\n\nConversation so far:\n{''.join(conversation_history)}\n\nContinue helping the user with DevRel expertise and confidence."
-                    api_key = os.getenv("OPENAI_API_KEY")
-                    if not api_key:
+                    api_key_1 = os.getenv("OPENAI_API_KEY")
+                    if not api_key_1:
                         return {"response": "Error: OPENAI_API_KEY not found in environment variables.", "logs": logs}
                     
                     log(f"  Using fallback OpenAI SDK method")
                     log(f"  Prompt length: {len(current_prompt)} characters")
                     
                     # Create client with API key - use a different name to avoid conflict
-                    openai_client = OpenAI(api_key="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")
+                    openai_client = OpenAI(api_key=api_key_1)
 
                     start_time = time.time()
                     response = openai_client.chat.completions.create(
@@ -730,30 +790,20 @@ def query_with_context(user_query, num_chunks=5, max_tokens=8192, use_direct_api
             log(f"  Total files retrieved: {len(retrieved_files)}")
             log(f"  Conversation history size: {len(''.join(conversation_history))} characters")
             log(f"  Moving to iteration {iterations+1} of max {max_iterations}")
+            
+            # At the end of each iteration
+            yield {"type": "iteration_complete", "iteration": iterations, "max_iterations": max_iterations}
         
-        # Provide final summary if verbose
-        log(f"\n[QUERY COMPLETE]")
-        log(f"  Completed after {iterations} iterations")
-        log(f"  Total chunks used: {len(chunks)}")
-        log(f"  Total files referenced: {len(retrieved_files)}")
-        log(f"  Final answer length: {len(final_answer if final_answer else response)} characters")
+        # Final result
+        yield {"type": "result", "response": final_answer if final_answer else response, "logs": logs}
         
-        # Return the final answer or what we have after max iterations along with logs
-        return {
-            "response": final_answer if final_answer else response,
-            "logs": logs
-        }
-    
     except Exception as e:
-        logger.error(f"Error during query: {e}")
-        log(f"\n[ERROR OCCURRED]")
-        log(f"  {str(e)}")
+        logger.error(f"Error during streaming query: {e}")
+        yield from log(f"\n[ERROR OCCURRED]")
+        yield from log(f"  {str(e)}")
         import traceback
-        log(f"  Traceback: {traceback.format_exc()}")
-        return {
-            "response": f"An error occurred: {str(e)}",
-            "logs": logs
-        }
+        yield from log(f"  Traceback: {traceback.format_exc()}")
+        yield {"type": "error", "message": str(e), "logs": logs}
 
 def query_codebase(query_text, limit=5):
     """
@@ -786,7 +836,7 @@ def interactive_query_mode():
     print("Type 'raw' to see raw Weaviate results instead of LLM")
     print("Type 'openai' to use OpenAI (default)")
     print("Type 'direct' to use direct API calls instead of SDK")
-    print("Type 'openai-model [model]' to set OpenAI model (default: gpt-4.1)")
+    print("Type 'openai-model [model]' to set OpenAI model (default: gpt-4o)")
     print("Type 'depth N' to set max iteration depth (default: 10)")
     print("Type 'min N' to set min iteration depth (default: 5)")
     print("Type 'verbose on/off' to toggle detailed progress (default: on)")
@@ -794,7 +844,7 @@ def interactive_query_mode():
     
     use_direct_api = False
     use_openai = True
-    openai_model = "gpt-4.1"
+    openai_model = "gpt-4o"
     max_iterations = 10
     min_iterations = 2
     verbose = True
@@ -834,8 +884,8 @@ def interactive_query_mode():
                     use_openai = True
                     print("OpenAI mode enabled")
             except (ValueError, IndexError):
-                print("Invalid model name. Using default gpt-4.1.")
-                openai_model = "gpt-4.1"
+                print("Invalid model name. Using default gpt-4o.")
+                openai_model = "gpt-4o"
         elif query.lower().startswith('depth '):
             # Set max iteration depth
             try:
@@ -983,7 +1033,7 @@ def process_query():
         min_iterations = data.get('min_iterations', 2)
         max_iterations = data.get('max_iterations', 10)
         verbose = data.get('verbose', True)
-        openai_model = data.get('model', 'gpt-4.1')
+        openai_model = data.get('model', 'gpt-4o')
         
         # Check if streaming is requested
         stream_mode = data.get('stream', False)
@@ -1026,7 +1076,7 @@ def process_query():
         logger.error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
-def query_with_context_stream(user_query, num_chunks=5, max_tokens=8192, use_direct_api=False, use_openai=True, min_iterations=2, max_iterations=10, verbose=True, openai_model="gpt-4.1"):
+def query_with_context_stream(user_query, num_chunks=5, max_tokens=8192, use_direct_api=False, use_openai=True, min_iterations=2, max_iterations=10, verbose=True, openai_model="gpt-4o"):
     """Streaming version of query_with_context that yields updates as they happen."""
     logger.info(f"Streaming query with: '{user_query}'")
     
@@ -1325,8 +1375,8 @@ def query_with_context_stream(user_query, num_chunks=5, max_tokens=8192, use_dir
                 # Fallback to using the OpenAI SDK
                 try:
                     current_prompt = initial_prompt if iterations == 1 else f"{initial_prompt}\n\nConversation so far:\n{''.join(conversation_history)}\n\nContinue helping the user with DevRel expertise and confidence."
-                    api_key = os.getenv("OPENAI_API_KEY")
-                    if not api_key:
+                    api_key_1 = os.getenv("OPENAI_API_KEY")
+                    if not api_key_1:
                         yield {"type": "error", "message": "Error: OPENAI_API_KEY not found in environment variables.", "logs": logs}
                         return
                     
@@ -1334,7 +1384,7 @@ def query_with_context_stream(user_query, num_chunks=5, max_tokens=8192, use_dir
                     log(f"  Prompt length: {len(current_prompt)} characters")
                     
                     # Create client with API key - use a different name to avoid conflict
-                    openai_client = OpenAI(api_key="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")
+                    openai_client = OpenAI(api_key=api_key_1)
 
                     start_time = time.time()
                     response = openai_client.chat.completions.create(

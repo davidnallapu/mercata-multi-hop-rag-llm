@@ -37,25 +37,25 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Add important files to track for special handling
 KEY_FILES = {
-    "strato-platform/strato/VM/SolidVM/solid-vm/src/Blockchain/SolidVM.hs": "core_vm",
-    "strato-mercata-llm-docs/strato-platform/strato/indexer/slipstream/src/Slipstream/OutputData.hs": "indexer",
-    "strato-mercata-llm-docs/strato-platform/strato/indexer/slipstream/src/Slipstream/Processor.hs": "indexer",
+    "strato-mercata-opensource/strato/VM/SolidVM/solid-vm/src/Blockchain/SolidVM.hs": "core_vm",
+    "strato-mercata-opensource/strato/indexer/slipstream/src/Slipstream/OutputData.hs": "indexer",
+    "strato-mercata-opensource/strato/indexer/slipstream/src/Slipstream/Processor.hs": "indexer",
 }
 
 # Update SOURCE_DIRS to use tuples (directory_path, description)
 SOURCE_DIRS = [
     # ("strato-platform/eth-bridge", "bridge related code"),
     # ("strato-platform/strato/api", "api related code"),
-    ("strato-platform/strato/indexer", "indexer related code"),
-    ("strato-platform/strato/VM", "VM code"),
+    ("strato-mercata-opensource/strato/indexer", "indexer related code"),
+    ("strato-mercata-opensource/strato/VM", "VM code"),
     # ("strato-platform/marketplace", "marketplace related code"),
     # ("docs-website", "documentation website"),
     # ("strato-getting-started", "getting started guide"),
     # ("blockapps-rest", "rest api implementation for STRATO"),
     # ("smd-ui", "ui"),
     # ("strato-mercata-docs", "mercata documentation"),
-    ("strato-platform/marketplace/backend/dapp/mercata-base-contracts", "contracts UTXO old"),
-    ("strato-platform/mercata", "contracts ERC20"),
+    ("strato-mercata-opensource/marketplace/backend/dapp/mercata-base-contracts", "contracts UTXO old"),
+    # ("strato-platform/mercata", "contracts ERC20"),
     ("other", "Contains important .docx files")
 ]
 

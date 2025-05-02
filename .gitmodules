@@ -1,0 +1,27 @@
+[submodule "blockapps-rest"]
+    path = blockapps-rest
+    url = https://github.com/blockapps/blockapps-rest.git
+
+[submodule "strato-getting-started"]
+    path = strato-getting-started
+    url = https://github.com/blockapps/strato-getting-started.git
+
+[submodule "strato-mercata-opensource"]
+    path = strato-mercata-opensource
+    url = https://github.com/blockapps/strato-mercata-opensource.git
+
+[submodule "mercata-llm-frontend"]
+    path = frontend
+    url = https://github.com/davidnallapu/mercata-llm-frontend.git
+
+[submodule "tree-sitter-haskell"]
+    path = tree-sitter-haskell
+    url = https://github.com/tree-sitter/tree-sitter-haskell.git
+
+[submodule "tree-sitter-javascript"]
+    path = tree-sitter-javascript
+    url = https://github.com/tree-sitter/tree-sitter-javascript.git
+
+[submodule "tree-sitter-solidity"]
+    path = tree-sitter-solidity
+    url = https://github.com/JoranHonig/tree-sitter-solidity

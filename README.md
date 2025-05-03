@@ -39,11 +39,13 @@ Note: Currently ASTs for edges are not done. This would make queries even more a
 
 ## 📦 Installation
 
-### 🔁 Clone the repository
+### 🔁 Clone the repository (including submodules for repo)
 
 ```bash
-git clone https://github.com/your-org/code-search-ai.git
-cd code-search-ai
+git clone https://github.com/davidnallapu/mercata-multi-hop-rag-llm.git
+cd mercata-multi-hop-rag-llm
+git submodule init
+git submodule update
 ```
 
 ---
@@ -68,7 +70,11 @@ docker-compose up -d
 
 ### 3. Run the code indexer
 
-Make sure you have the correct API key in your `.env` file.
+Make sure you have the correct OpenAI API key in your `.env` file or global environment:
+
+```bash
+export OPENAI_API_KEY=your-api-key
+```
 
 ```bash
 python embed_codebase_weaviate.py
@@ -124,17 +130,10 @@ Modify:
 - `docker-compose.yml` for container settings  
 - Class schema, vectorizer, and module options  
 
-### 🔑 OpenAI Settings
-
-Set in `.env` or environment:
-
-```bash
-export OPENAI_API_KEY=your-api-key
-```
 
 ### 🧠 Model Configs
 
-Tweak inside `query_backend.py` or `embed_code.py`
+Tweak inside `query_codebase_weaviate2.py` or `embed_codebase_weaviate.py`
 
 ---
 

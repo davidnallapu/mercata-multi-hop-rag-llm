@@ -118,7 +118,7 @@ def query_openai_api(prompt, model="gpt-4o"):
     
     try:
         api_key_1 = os.getenv("OPENAI_API_KEY")
-        if not api_key:
+        if not api_key_1:
             return "Error: OPENAI_API_KEY not found in environment variables."
         
         # Create client with API key

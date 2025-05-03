@@ -1,7 +1,10 @@
-openai
-python-dotenv
-weaviate-client
-tree-sitter
+flask
+flask_cors
 networkx
+nltk
+openai
 python-docx
-nltk 
+python-dotenv
+requests
+tree-sitter==0.21.3
+weaviate-client

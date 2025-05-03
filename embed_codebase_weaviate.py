@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
+if not openai.api_key:
+    return "Error: OPENAI_API_KEY not found in environment variables."
 
 # Add important files to track for special handling
 KEY_FILES = {

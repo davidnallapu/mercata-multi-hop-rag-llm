@@ -70,6 +70,8 @@ docker-compose up -d
 
 ### 3. Run the code indexer
 
+This project uses the `gpt-4-turbo` OpenAI model, so please ensure that your API keys have access to that model.
+
 Make sure you have the correct OpenAI API key in your `.env` file or global environment:
 
 ```bash

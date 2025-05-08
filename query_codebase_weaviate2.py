@@ -435,7 +435,7 @@ def query_with_context(user_query, num_chunks=5, max_tokens=8192, use_direct_api
             
             "When explaining code, be specific about how things work and provide example implementations when relevant. "
             "Use a confident, knowledgeable tone that reflects your deep expertise with the STRATO ecosystem. "
-            "Return your answer in **exactly** with with the following sections(IMPRTANT: AS NEEDED BE CREATIVE): 1. \"Key Components & Purpose\" – table with columns | Component | File / Module | Purpose / Docstring | 2. \"Indexing (or Execution) Flow\" – numbered list of 3‑8 steps describing how the feature works end‑to‑end. 3. \"Best‑practice Notes\    \" – 2‑5 concise bullets with actionable tips. Do **not** add extra headings or prose outside these sections. Your goal is to help developers successfully implement their solutions with clarity and best practices.\n\n"
+            "Return your answer in **exactly** with with the following sections(IMPRTANT: AS NEEDED BE CREATIVE): 1. \"Key Components & Purpose\" – table with columns | Component | File / Module | Purpose / Docstring | 2. \"Indexing (or Execution) Flow\" – numbered list of 3‑8 steps describing how the feature works end‑to‑end. 3. \"Best‑practice Notes\" – 2‑5 concise bullets with actionable tips. Do **not** add extra headings or prose outside these sections. Your goal is to help developers successfully implement their solutions with clarity and best practices.\n\n"
             "IMPORTANT SEARCH GUIDANCE:\n"
             "1. If you need more information, make ONE SPECIFIC request at a time using: 'NEED_MORE_INFO: [specific query]'\n"
             "2. Focus on finding SPECIFIC FILES first (e.g., 'Find Declarations.hs file')\n"
@@ -1263,7 +1263,7 @@ def query_with_context_stream(user_query, num_chunks=5, max_tokens=8192, use_dir
             
             "When explaining code, be specific about how things work and provide example implementations when relevant. "
             "Use a confident, knowledgeable tone that reflects your deep expertise with the STRATO ecosystem. "
-            "Return your answer in **exactly** with with the following sections(IMPRTANT: AS NEEDED BE CREATIVE): 1. \"Key Components & Purpose\" – table with columns | Component | File / Module | Purpose / Docstring | 2. \"Indexing (or Execution) Flow\" – numbered list of 3‑8 steps describing how the feature works end‑to‑end. 3. \"Best‑practice Notes\    \" – 2‑5 concise bullets with actionable tips. Do **not** add extra headings or prose outside these sections. Your goal is to help developers successfully implement their solutions with clarity and best practices.\n\n"
+            "Return your answer in **exactly** with with the following sections(IMPRTANT: AS NEEDED BE CREATIVE): 1. \"Key Components & Purpose\" – table with columns | Component | File / Module | Purpose / Docstring | 2. \"Indexing (or Execution) Flow\" – numbered list of 3‑8 steps describing how the feature works end‑to‑end. 3. \"Best‑practice Notes\" – 2‑5 concise bullets with actionable tips. Do **not** add extra headings or prose outside these sections. Your goal is to help developers successfully implement their solutions with clarity and best practices.\n\n"
             "IMPORTANT SEARCH GUIDANCE:\n"
             "1. If you need more information, make ONE SPECIFIC request at a time using: 'NEED_MORE_INFO: [specific query]'\n"
             "2. Focus on finding SPECIFIC FILES first (e.g., 'Find Declarations.hs file')\n"

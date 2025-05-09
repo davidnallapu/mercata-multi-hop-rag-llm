@@ -1939,9 +1939,14 @@ def print_weaviate_data_summary():
             # Get sample objects (limit to a reasonable number)
             sample_size = min(10, total_count)
             if sample_size > 0:
+                # Get the collection's properties instead of using wildcard "*"
+                properties = ["text", "file", "category", "module", "model", "language", 
+                             "name", "type", "line", "importance", "subsystem", "visibility",
+                             "source", "target", "description", "section", "usecase", "heading", "chunk_id"]
+                
                 sample_objects = collection.query.fetch_objects(
                     limit=sample_size,
-                    return_properties=["*"]  # Get all properties
+                    return_properties=properties  # Explicitly list properties instead of "*"
                 ).objects
                 
                 logger.info(f"Sample data from '{collection_name}' ({sample_size} items):")
@@ -2077,4 +2082,3 @@ if __name__ == "__main__":
         # Close the Weaviate connection
         client.close()
         logger.info("Weaviate connection closed properly")
-        
